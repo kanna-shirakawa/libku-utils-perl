@@ -1,0 +1,65 @@
+
+jtdeb-make v1.3 (2018/05) args: 
+
+
+jtdeb-clean v1.1 (2018/03) args: 
+
+dh_testdir
+dh_testroot
+# Add commands to clean up after the build process here
+dh_clean build-stamp install-stamp
+
+ running make using 'Makefile'
+
+rm -rf /w/tmp/jtdeb-port-I6u1wJF/libku-utils-perl/debian/tmp
+
+dpkg-buildpackage -rfakeroot -us -uc 
+
+dpkg-buildpackage: source package libku-utils-perl
+dpkg-buildpackage: source version 1.0-ku21-10a
+dpkg-buildpackage: source distribution unstable
+dpkg-buildpackage: source changed by KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
+ dpkg-source --before-build libku-utils-perl
+dpkg-buildpackage: host architecture amd64
+ fakeroot debian/rules clean
+dh_testdir
+dh_testroot
+# Add commands to clean up after the build process here
+dh_clean build-stamp install-stamp
+ dpkg-source -b libku-utils-perl
+dpkg-source: warning: no source format specified in debian/source/format, see dpkg-source(1)
+dpkg-source: warning: source directory 'libku-utils-perl' is not <sourcepackage>-<upstreamversion> 'libku-utils-perl-1.0-ku21'
+dpkg-source: info: using source format `1.0'
+dpkg-source: info: building libku-utils-perl in libku-utils-perl_1.0-ku21-10a.tar.gz
+dpkg-source: info: building libku-utils-perl in libku-utils-perl_1.0-ku21-10a.dsc
+ debian/rules build
+dh_testdir
+# Add commands to compile the package here
+touch build-stamp
+ fakeroot debian/rules binary
+dh_testdir
+dh_testroot
+#dh_clean -k
+dh_prep
+# Add commands to install the package into debian/ACKAGE_NAME here
+mkdir -p /w/tmp/jtdeb-port-I6u1wJF/libku-utils-perl/debian/libku-utils-perl/usr/share/perl5
+cd src && cp -a *.pl /w/tmp/jtdeb-port-I6u1wJF/libku-utils-perl/debian/libku-utils-perl/usr/share/perl5/
+touch install-stamp
+dh_testdir
+dh_testroot
+dh_installdocs
+dh_installchangelogs 
+dh_perl
+dh_link
+dh_compress
+dh_fixperms
+dh_installdeb
+dh_gencontrol
+dpkg-gencontrol: warning: Depends field of package libku-utils-perl: unknown substitution variable ${perl:Depends}
+dh_md5sums
+dh_builddeb
+dpkg-deb: building package `libku-utils-perl' in `../libku-utils-perl_1.0-ku21-10a_all.deb'.
+ dpkg-genchanges  >../libku-utils-perl_1.0-ku21-10a_amd64.changes
+dpkg-genchanges: including full source code in upload
+ dpkg-source --after-build libku-utils-perl
+dpkg-buildpackage: full upload; Debian-native package (full source is included)
