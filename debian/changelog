@@ -1,0 +1,8 @@
+libku-utils-perl (1.0-ku0) unstable; urgency=low
+
+
+  * first debian packaging
+
+
+ -- KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>  Fri, 22 Oct 2021 23:34:51 +0200
+

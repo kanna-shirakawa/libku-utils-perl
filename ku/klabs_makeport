@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e -u
+
+parms=
+
+[ $# = 0 ] && {
+	eval $(ku-distroenv)
+	parms="--no-repos $DISTRIB_CODENAME"
+}
+
+exec jtreset jtcj --batch --no-cd klabs-pkgs makeport $parms "$@"

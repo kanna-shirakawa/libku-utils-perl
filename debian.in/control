@@ -1,0 +1,14 @@
+Source: __TOOLKIT__
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 5.0.0)
+Build-Depends-Indep: perl (>= 5.8.8-7build1)
+Maintainer: __maintainer__
+Standards-Version: 3.7.2
+
+Package: __TOOLKIT__
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, 
+Description:  a bunch of Perl code snippets, for an easy living, atm:
+ - date and time formatting
+ - debug and verbose messaging
