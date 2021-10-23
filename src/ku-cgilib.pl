@@ -1,7 +1,7 @@
 # ../cgi-bin/cglib.pl
 #
-# (c) Lorenzo Canovi (KUBiC Labs, CH) <packager@kubiclabs.com>
-# for copyright see /usr/share/doc/kubackup/copyright
+# __copy1__
+# __copy2__
 #
 # really, taken from internet years ago and modified, don't know exactly where
 # and who's the original author
@@ -14,8 +14,8 @@
 # Currently only supports Content-Type of application/x-www-form-urlencoded.
 
 sub getcgivars {
-    local($in, %in) ;
-    local($name, $value) ;
+    local($in, %in);
+    local($name, $value);
 
     # debug, if the script if called via command line, emulate a GET req
     #
@@ -31,33 +31,37 @@ sub getcgivars {
     # First, read entire string of CGI vars into $in
     if ( ($ENV{'REQUEST_METHOD'} eq 'GET') ||
          ($ENV{'REQUEST_METHOD'} eq 'HEAD') ) {
-        $in= $ENV{'QUERY_STRING'} ;
+        $in = $ENV{'QUERY_STRING'};
 
     } elsif ($ENV{'REQUEST_METHOD'} eq 'POST') {
         if ($ENV{'CONTENT_TYPE'}=~ m#^application/x-www-form-urlencoded$#i) {
             length($ENV{'CONTENT_LENGTH'})
-                || &HTMLdie("No Content-Length sent with the POST request.") ;
-            read(STDIN, $in, $ENV{'CONTENT_LENGTH'}) ;
+                || &HTMLdie("No Content-Length sent with the POST request.");
+            read(STDIN, $in, $ENV{'CONTENT_LENGTH'});
 
         } else { 
-            &HTMLdie("Unsupported Content-Type: $ENV{'CONTENT_TYPE'}") ;
+            &HTMLdie("Unsupported Content-Type: $ENV{'CONTENT_TYPE'}");
         }
 
     } else {
-        &HTMLdie("Script was called with unsupported REQUEST_METHOD.") ;
+        &HTMLdie("Script was called with unsupported REQUEST_METHOD.");
     }
     
     # Resolve and unencode name/value pairs into %in
     foreach (split(/[&;]/, $in)) {
-        s/\+/ /g ;
-        ($name, $value)= split('=', $_, 2) ;
-        $name=~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/ge ;
-        $value=~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/ge ;
-        $in{$name}.= "\0" if defined($in{$name}) ;  # concatenate multiple vars
-        $in{$name}.= $value ;
+        s/\+/ /g;
+        ($name, $value)= split('=', $_, 2);
+        $name =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/ge;
+	if (defined $value) {
+        	$value =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/ge;
+	} else {
+		$value = "";
+	}
+        $in{$name}.= "\0" if defined($in{$name});  # concatenate multiple vars
+        $in{$name}.= $value;
     }
 
-    return %in ;
+    return %in;
 
 }
 
@@ -65,7 +69,7 @@ sub getcgivars {
 # html output helpers
 
 sub HTMLhead {
-	local( $title, $meta, $bodyparms )= @_ ;
+	local( $title, $meta, $bodyparms )= @_;
 	my $buf;
 
 	$title	= $ENV{HTTP_HOST}	if (!defined $title);

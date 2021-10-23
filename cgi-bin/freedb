@@ -1,0 +1,493 @@
+#!/usr/bin/perl -w
+#
+# simple http based database
+#
+# __copy1__
+# __copy2__
+#
+my $Cmd		= "freedb";
+my $CmdVer	= "1.7";
+my $CmdStr	= "$Cmd v.$CmdVer (2021-10-23)";
+
+require "ku-cgilib.pl";
+
+my $DataDir	= "../$Cmd";
+my %arg		= getcgivars();
+
+$ENV{DEBUG} = 0		if (!defined $ENV{'DEBUG'});
+$ENV{DEBUG} = 1		if (defined $arg{'debug'} && $arg{'debug'});
+
+if (defined $ENV{'FREEDB_DATADIR'}) {
+	$DataDir = $ENV{'FREEDB_DATADIR'};
+	pdebug( "setting datadir from env FREEDB_DATADIR: $DataDir" );
+} else {
+	if ($ENV{'DEBUG'} && -d "../test_$Cmd") {
+		$DataDir = "../test_$Cmd";
+		pdebug( "DEBUG, setting datadir: $DataDir" );
+	}
+}
+
+# RATIONALE
+#
+# the database uses the filesystem for data storage and organization
+#
+# under $DataDir directory each subdir is a 'user'; a missin directory
+# means that the user is not authorized
+#
+# in the user subdir, each subdir is a 'field'; the web database is a
+# flat, simple field -> key->value db: under the field subdir each file
+# is a key, the file content store the value
+#
+#	$DataDir
+#	   +-- user1
+#	   |
+#	   +-- user2 ...
+#		+-- field_a
+#		+-- field_b
+#		+-- field_c
+#			+--- file: key1
+#			+--- file: key2
+#		   
+# the fieldnames can have: letters, numbers, undescore, dots
+# the dots in the fieldname can be used to group fields in pseudo-tables
+#
+# the DataDir is a directory with the same level of cgi-bin, with the
+# name equal to che script itself (really, the $Cmd variable), so
+#
+#	../freedb
+#
+# the value can be override by FREEDB_DATADIR environment var
+#
+#
+#
+# USAGE
+#
+# - this file must be copied in the cgi-bin of your web server (tested on
+#   apache2); you need perl installed, obviosuly
+#
+# - the library ku-cgilib.pl must be availabe to perl, so must be present
+#   in one of the directories listed in the @INC perl variable; use
+#   "perl -V" to check
+#
+# - the cgi must be called from http via GET, ie:
+#
+#	wget -O - http://your.web.site/cgi-bin/freedb?parms
+#
+#
+#
+# DEBUG MODE
+#
+# - for testing and debug purpouse you can call the scrip directly from
+#   the shell prompt, passing the parameters as arguments in the shell
+#   way (space separated): the cgi library will emulate a call from the
+#   webserver, ie, to get the embedded help:
+#
+#	./freedb c=H
+#
+#   in debug mode the DataDir is set to ../test/$Cmd, if this directory
+#   is present; or use $FREEDB_DATADIR env to override
+#
+# - the debug mode is activated by:
+#   . passing argument debug=1
+#   . setting env DEBUG=1 before invocation
+#   . running the script directly from commandline
+#
+#
+# QUOTAS (AND OTHER CONFIG OPTIONS)
+#
+# the script have a simple quota management, managed by definition in
+# the config file
+#
+# the config file is name $Cmd.cfg and is located in the $DataDir and/or
+# in the userdir; they are searched and loaded in sequence, if present,
+# so you can use the first for general settings, and the latter for
+# per-user settings
+#
+# take a look to freedb.cfg sample file in the docs directory for details,
+# or look at the load_config_file() function, here
+#
+#
+# LOGFILE
+#
+# from config you can activate the recording of all db operations, the
+# script will create one logfile for each field, with the same name
+# with ".log" appendend
+#
+# BEWARE that at the moment the logfile size check, and conseguent file
+# rotation/truncation, is no yet implemented!
+#
+#
+# TODO	sanity checks on: field, key
+#
+# TODO	size check and do rotation of logfiles
+
+
+print "Content-type: text/html\n\n";
+
+if (!defined $arg{'c'})		{ die_error( "missing cmd (c)" ); }
+my $Command	= $arg{'c'};
+
+if ($Command eq "H") { print_help(); exit(0); }
+
+
+
+if (!defined $arg{'u'})		{ die_error( "missing user (u)" ); }
+my $User	= $arg{'u'};
+
+
+if (! -d $DataDir)		{ die_error( "datadir not found '$DataDir'" ); }
+
+
+my $UserDir	= join( "/", $DataDir, $User );
+
+if (! -d "$DataDir/$arg{'u'}")	{ die_error( "user unknown: '" . $arg{'u'} . "'" ); }
+
+
+# config (all zeroed = disabled)
+#
+my $Cfg_max_fields	= 0;
+my $Cfg_max_keys	= 0;
+my $Cfg_max_usage	= 0;	# in Mb
+my $Cfg_log_enabled	= 0;
+my $Cfg_log_usage	= 0;	# in Mb
+my $Cfg_log_maxrot	= 0;
+
+load_configs();
+
+# quota counters
+#
+my $Tot_usage	= 0;	# warning! in bytes!
+my $Tot_fields	= 0;
+my $Tot_keys	= 0;
+
+# eeeh ... this commands chars sequence is not intentional, but it's funny :D
+#
+my $valid_cmds = "HRWDGFUCK";
+if ($Command !~ /[$valid_cmds]/) {
+	die_error( "invalid Command='$Command', must be one letter from: $valid_cmds" );
+}
+
+# db operations
+#
+if ($Command eq "G") { do_print_config(); exit(0); }
+if ($Command eq "F") { do_list_fields(); exit(0); }
+if ($Command eq "U") { do_check_usage(); exit(0); }
+
+# fields operations
+#
+if (!defined $arg{'f'})		{ die_error( "missing field_name (f)" ); }
+
+my $Field	= $arg{'f'};
+my $FieldDir	= join( "/", $UserDir, $Field );
+
+if ($Command eq "C") { do_count(); exit(0); }
+if ($Command eq "K") { do_list_keys(); exit(0); }
+
+if (!defined $arg{'k'})		{ die_error( "$Command: missing key (k)" ); }
+my $Key	= $arg{'k'};
+
+if ($Command eq "R") { do_read( $Key ); exit(0); }
+if ($Command eq "D") { do_delete( $Key ); exit(0); }
+if ($Command eq "W") {
+	if (!defined $arg{'v'})		{ die_error( "$Command: missing value (v)" ); }
+	do_write( $arg{'v'} );
+	exit(0);
+}
+
+die_error( "unknown error..." );
+
+exit(0);
+
+
+
+
+
+
+sub pdebug
+{
+	return if (!$ENV{DEBUG});
+	my $line;
+	foreach $line (@_) {
+		print( STDERR "#D ", $line, "\n" );
+	}
+}
+
+
+sub die_error
+{
+	my $msg = join( "\n", @_ ) . "\n";
+	print( "ERROR ", $msg );
+	print( STDERR $msg )	if (!$ENV{DEBUG});
+	#print STDERR "content='" . $ENV{'DBG_CONTENT'} . "'\n";
+	exit( 1 );
+}
+
+sub print_help
+{
+	print( "database commands\n" );
+	print( " F	list fields\n" );
+	print( " U	checks disk usage\n" );
+	print( " G	print config\n" );
+	print( "\n" );
+	print( "fields commands (requires 'f' parm):\n" );
+	print( " C	count keys\n" );
+	print( " K	list keys\n" );
+	print( "\n" );
+	print( "entry commands (requires 'f' and 'k' parms):\n" );
+	print( " R	read\n" );
+	print( " W	write\n" );
+	print( " D	delete\n" );
+}
+
+
+sub list_dir
+{
+	my ($DIR,$type) = @_;
+	my @out;
+	$type	= "f"	if (!defined $type);
+
+	pdebug( "list_dir(): listing dir='$DIR' type='$type" );
+	opendir( $DIR, $DIR )	or die_error( "can't opendir '$DIR'" );
+	my @tmp = readdir( $DIR );
+	closedir( $DIR );
+	foreach $_ (@tmp) {
+		next	if ($_ eq ".");
+		next	if ($_ eq "..");
+		pdebug( "list_dir(): eval file='$DIR/$_'" );
+		push( @out, $_ )	if ($type eq "f" && -f "$DIR/$_");
+		push( @out, $_ )	if ($type eq "d" && -d "$DIR/$_");
+	}
+	pdebug( "list_dir(): " . join( ", ", @out ) );
+	return @out;
+}
+
+sub user_usage
+{
+	my $usage = `du -bs "$UserDir"`;
+	$usage =~ s/\s.*//;
+	return($usage/1024);
+}
+
+sub do_print_config
+{
+	printf( "  max_fields:  %8d\n", $Cfg_max_fields );
+	printf( "  max_keys:    %8d\n", $Cfg_max_keys );
+	printf( "  max_usage:   %8d Mb\n", $Cfg_max_usage );
+	printf( "\n" );
+	printf( "  log_enabled: %8s\n", ($Cfg_log_enabled ? "true" : "false") );
+	printf( "  log_usage:   %8d Mb\n", $Cfg_log_usage );
+	printf( "  log_maxrot:  %8d\n", $Cfg_log_maxrot );
+	printf( "\n" );
+
+	count_stats();
+
+	printf( "  current fields count: %8d  %s\n", $Tot_fields, is_over($Tot_fields,$Cfg_max_fields) );
+	printf( "  current keys count:   %8d  %s\n", $Tot_keys, is_over($Tot_keys,$Cfg_max_keys) );
+	printf( "  current disk usage:   %8d  %s\n", $Tot_usage/1024, is_over($Tot_usage/1024,$Cfg_max_usage) );
+
+	return 1;
+}
+
+sub is_over
+{
+	my ($val,$max) = @_;
+	return "OUT OF LIMITS!"		if ($max != 0 and $val > $max);
+	return "";
+}
+
+
+# ------------------------------------
+
+sub do_list_fields
+{
+	print( join( " ", list_dir( $UserDir, "d" ) ) . "\n" );
+	1;
+}
+
+sub do_check_usage
+{
+	print( user_usage() . "\n" );
+	1;
+}
+
+sub do_read
+{
+	my $F = join( "/", $FieldDir, $Key );
+	my $val;
+	if (! -f $F) {
+		print( "ERROR key not found: '$Key'\n" );
+		0;
+	}
+	open( F, "<$F" )	or die_error( "reading '$F': $!" );
+	$val = <F>;
+	close( F, )		or die_error( "reading '$F': $!" );
+	pdebug( "read from $F: val='$val'" );
+	print( $val, "\n" );
+	1;
+}
+
+sub do_write
+{
+	my ($val) = @_;
+	my $F = join( "/", $FieldDir, $Key );
+	if (! -d $FieldDir) {
+		mkdir( $FieldDir )	or die_error( "can't create dir '$FieldDir'" );
+	}
+	# TODO here we must check user quotas
+	pdebug( "writing in $F: val='$val'" );
+	open( F, ">$F" )	or die_error( "writing '$F': $!" );
+	print( F $val );
+	close( F )		or die_error( "writing '$F': $!" );
+	print( "OK\n" );
+
+	write_log($val)	 if ($Cfg_log_enabled);
+	1;
+}
+
+sub do_delete
+{
+	my $F = join( "/", $FieldDir, $Key );
+	unlink( $F );
+	if (-f $F)		{ die_error( "cannot delete '$F': $!" ); }
+	print( "OK\n" );
+
+	write_log()	 if ($Cfg_log_enabled);
+	1;
+}
+
+sub do_list_keys
+{
+	print( join( "\n", list_dir( $FieldDir, "f" ) ) . "\n" );
+	1;
+}
+
+sub do_count
+{
+	my @list = list_dir( $FieldDir, "f" );
+	print( scalar(@list) . "\n" );
+	1;
+}
+
+
+sub load_configs
+{
+	my $dir;
+	foreach $dir ($DataDir, $UserDir) {
+		# ignore errors
+		load_config_file( sprintf( "%s/%s.cfg", $dir, $Cmd ) );
+	}
+}
+
+sub load_config_file
+{
+	my ($CFGFILE)	= @_;
+
+	pdebug( "try to load config file '$CFGFILE'" );
+	open( CFGFILE, "<$CFGFILE" ) or return;
+	while (<CFGFILE>) {
+		chomp();
+		$_ =~ s/\s*#.*//;		# remove comments
+		$_ =~ s/\s+$//;			# remove trailing spaces
+		next	if ($_ =~ /^$/);	# ignore empty lines
+
+		my ($key,$val) = split( /\s+/ );
+
+		if ($key eq "max_fields")  { $Cfg_max_fields	= normalize_int($val); next; }
+		if ($key eq "max_keys")    { $Cfg_max_keys	= normalize_int($val); next; }
+		if ($key eq "max_usage")   { $Cfg_max_usage	= normalize_int($val); next; }
+		if ($key eq "log_enabled") { $Cfg_log_enabled	= normalize_bool($val); next; }
+		if ($key eq "log_usage")   { $Cfg_log_usage	= normalize_int($val); next; }
+		if ($key eq "log_maxrot")  { $Cfg_log_maxrot	= normalize_int($val); next; }
+
+		die_error( "unknown config key in $CFGFILE: '$key'" );
+	}
+	close( CFGFILE );
+
+	pdebug( "after loading config file '$CFGFILE':" );
+	pdebug( "  Cfg_max_fields:  " . $Cfg_max_fields );
+	pdebug( "  Cfg_max_keys:    " . $Cfg_max_keys );
+	pdebug( "  Cfg_max_usage:   " . $Cfg_max_usage );
+	pdebug( "  Cfg_log_enabled: " . $Cfg_log_enabled );
+	pdebug( "  Cfg_log_usage:   " . $Cfg_log_usage );
+	pdebug( "  Cfg_log_maxrot:  " . $Cfg_log_maxrot );
+	return 1;
+}
+
+sub normalize_int
+{
+	my ($str) = @_;
+	my $val	= $str + 0;
+	if ($str !~ /^\d+$/) {
+		pdebug( "WARN, not an integer: '$str', returned as $val" );
+	}
+	return $val;
+}
+
+sub normalize_bool
+{
+	my ($str) = @_;
+	return 1	if ($str =~ /^[1ys]$/i);
+	return 1	if ($str =~ /^true$|^yes$|^si$|^da$/i);
+	return 0	if ($str =~ /^[0n]$/i);
+	return 0	if ($str =~ /^false$|^no$|^niet$/i);
+
+	pdebug( "WARN, not a boolean: '$str', returned as 0 (false)" );
+	return 0;
+}
+
+
+sub count_stats
+{
+	my ($DIR) = @_;
+	my ($fname,@direntries,@stat);
+	if (!defined $DIR) {
+		$DIR = $UserDir;
+		pdebug( "start counting stats in userdir: $DIR" ); 
+		$Tot_usage	= 0;
+		$Tot_fields	= 0;
+		$Tot_keys	= 0;
+	} else {
+		pdebug( "adding stats from subdir: $DIR" );
+	}
+
+	opendir( $DIR, $DIR )	or die_error( "can't opendir '$DIR'" );
+	@direntries = readdir( $DIR );
+	closedir( $DIR );
+
+	foreach $fname (@direntries) {
+		next	if ($fname eq ".");
+		next	if ($fname eq "..");
+		$fname	= $DIR . "/" . $fname;
+		@stat = stat( $fname );
+		$Tot_usage += $stat[7];
+		if (-d $fname) {
+			$Tot_fields ++;
+			count_stats( $fname );
+		} else {
+			$Tot_keys ++;
+		}
+	}
+	return 1;
+}
+
+
+sub write_log
+{
+	my ($val)	= @_;
+	my @ts	= localtime(time());
+	my $buf;
+	my $LOG;
+
+	$val	= ""	if (!defined $val);
+
+	$LOG	= "$UserDir/$Field.log";
+
+	# TODO check size and rotate
+
+	open( LOG, ">>$LOG" )	or die_error( "appending to '$LOG': $!" );
+	printf( LOG "%4d-%02d-%02d %02d:%02d:%02d %s|%s|%s\n",
+		$ts[5] + 1900, $ts[4]+1, $ts[3], $ts[2], $ts[1], $ts[0],
+		$Command, $Key, $val );
+	close( LOG );
+	return 1;
+}

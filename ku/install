@@ -7,5 +7,22 @@
 :copy1		maintainer: $maintainer
 :copy2		for copyright see /usr/share/doc/$TOOLKIT/copyright
 
-:default_mode	775
+:default_owner	root:root
 
+
+
+:dir		$docdir
+
+:default_mode	664
+docs/*		$docdir/
+
+:default_mode	775
+:dir		$docdir/cgi-bin
+cgi-bin/freedb	$docdir/cgi-bin/
+
+
+
+:dir		$prefix/share/perl5
+
+:default_mode	664
+src/*.pl	$prefix/share/perl5/

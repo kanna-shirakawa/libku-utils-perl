@@ -1,3 +1,8 @@
+# ku-utils.pl
+#
+# __copy1__
+# __copy2__
+#
 # some usefull code snippets that will be "imported" in the main namespace
 # if this file is in the include search path, simly include using
 #
