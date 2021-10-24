@@ -1,5 +1,5 @@
-.|1635009738|kanna
-README.md|1635009713|kanna
+.|1635091764|kanna
+README.md|1635091535|kanna
 debian.in|1635009299|kanna
 debian.in/compat|1181745631|kanna
 debian.in/changelog|1634998315|kanna
@@ -14,15 +14,15 @@ cgi-bin|1635009365|kanna
 cgi-bin/freedb|1635007551|kanna
 .gitignore|1513609090|kanna
 bin|1634913787|kanna
-ku|1635009197|kanna
-ku/klabs_makeport|1634983168|kanna
+ku|1635091707|kanna
+ku/klabs_makeport|1635091707|kanna
 ku/install-functions.sh|1389550301|kanna
 ku/history.new|1634998315|kanna
 ku/install.sh|1351125947|kanna
 ku/history|1634917270|kanna
 ku/Makefile|1360732946|kanna
-ku/install|1635009196|kanna
-.jtscm-autosync.lock|1635009738|kanna
+ku/install|1635033123|kanna
+.jtscm-autosync.lock|1635091764|kanna
 debian|1635008667|kanna
 debian/compat|1634998315|kanna
 debian/.placeholder|1634917809|kanna

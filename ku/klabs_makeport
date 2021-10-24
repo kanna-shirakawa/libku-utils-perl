@@ -2,6 +2,12 @@
 
 set -e -u
 
+which jtcj >/dev/null || {
+	echo -e "\n$0 error: 'jtcj' command missing" >&2
+	echo "	you need to install ku-jtools package\n" >&2
+	exit 1
+}
+
 parms=
 
 [ $# = 0 ] && {

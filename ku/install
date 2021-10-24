@@ -1,7 +1,7 @@
 :TOOLKIT	libku-utils-perl
 :VERSION	1.0
-:RELEASE	ku0
-:SIGNATURE	${VERSION}-${RELEASE} (2021-10-22)
+:RELEASE	ku21.10
+:SIGNATURE	${VERSION}-${RELEASE} (2021-10-24)
 :maintainer	KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
 :homepage	http://www.kubiclabs.com
 :copy1		maintainer: $maintainer
