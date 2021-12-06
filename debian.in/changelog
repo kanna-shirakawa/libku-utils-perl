@@ -1,8 +1,18 @@
-libku-utils-perl (1.0-ku0) unstable; urgency=low
+libku-utils-perl (1.0-ku21-12a) unstable; urgency=low
 
+  * ku-utils.pl
+    - fix: pdate() functions returns wrong month (missing +1 in calculations)
+
+  * (packaging)
+    - upd: ku tools updated (1.4)
+    - fix: ku/Makefile promoted to main dir
+
+
+ -- KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>  Mon, 06 Dec 2021 11:33:52 +0100
+
+libku-utils-perl (1.0-ku21-10) unstable; urgency=low
 
   * first debian packaging
 
-
- -- KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>  Sat, 23 Oct 2021 16:11:55 +0200
+ -- KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>  Mon, 25 Oct 2021 15:20:00 +0200
 

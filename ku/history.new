@@ -1,5 +1,13 @@
-2021-10-23 16:11:55 1.0 ku0 KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
+2021-12-06 11:33:52 1.0 ku21.12a KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
 
+  * ku-utils.pl
+    - fix: pdate() functions returns wrong month (missing +1 in calculations)
+
+  * (packaging)
+    - upd: ku tools updated (1.4)
+    - fix: ku/Makefile promoted to main dir
+
+2021-10-25 15:20:00 1.0 ku21.10 KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
 
   * first debian packaging
 

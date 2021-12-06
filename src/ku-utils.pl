@@ -175,7 +175,7 @@ sub pdate
 	$tm = time()	if (!defined $tm || $tm eq "");
 	@tm = localtime($tm);
 
-	$out = sprintf( "%d-%02d-%02d", $tm[5]+1900, $tm[4], $tm[3] );
+	$out = sprintf( "%d-%02d-%02d", $tm[5]+1900, $tm[4]+1, $tm[3] );
 
 	if (defined $long && $long) {
 		$out .= sprintf( " %02d:%02d:%02d", $tm[2], $tm[1], $tm[0] );
