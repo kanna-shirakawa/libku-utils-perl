@@ -1,0 +1,74 @@
+#!/usr/bin/perl -w
+
+my $Cmd		= "age_real";
+my $CmdVer	= "1.1";
+my $CmdStr	= "$Cmd v$CmdVer (2022-02-24)";
+
+if (-f "../src/ku-utils-realdates.pl") {
+	print( STDERR "DD# test environment, using lib from ../src dir\n" );
+	do "../src/ku-utils-realdates.pl";	# test environment
+} else {
+	do "ku-utils-realdates.pl";		# production environment
+}
+
+our $Verbose	= 0;	# the default is 1
+our $Debug	= 0;	# same as default
+our %Debug;		# don't define any debug tag here
+
+
+# parse arguments for debug / verbose ones; they are removed
+# from output array
+#
+@ARGV = set_debug_and_verbose( @ARGV );
+
+usage()	if (scalar @ARGV != 1);
+
+$_ = $ARGV[0];
+
+# as debug example we will print the unit used in argument
+#
+# we don't have any debug tag defined, so the first argument of
+# each pdebug() call must be undefined or empty string
+#
+my $d_msg	= "using units: %s";
+
+CASE: {
+	if ($_ =~ /^\d+$/)	{ pdebug( undef, $d_msg, "seconds (implicit)" ); last CASE; }
+	if ($_ =~ /^\d+s$/)	{ pdebug( undef, $d_msg, "seconds" ); $_ =~ s/s$//; last CASE; }
+	if ($_ =~ /^\d+m$/)	{ pdebug( '', $d_msg, "minutes" ); $_ =~ s/m$//; $_ *= 60; last CASE; }
+	if ($_ =~ /^\d+h$/)	{ pdebug( '', $d_msg, "hours" ); $_ =~ s/h$//; $_ *= 3600; last CASE; }
+	if ($_ =~ /^\d+d$/)	{ pdebug( '', $d_msg, "days" ); $_ =~ s/d$//; $_ *= 86400; last CASE; }
+	if (!system( "date --date '$_' >/dev/null 2>/dev/null" )) {
+		pdebug( '', $d_msg, "date" ); last CASE;
+	}
+
+	printf( STDERR "\n%s error: wrong argument '%s'\n", $Cmd, $ARGV[0] );
+	usage();
+}
+
+vprint( "\nI must say something nice (--verbose used, or env \$VERBOSE=true)\n\n" );
+
+print( ptime( $_ ), "\n" );
+exit( 0 );
+
+sub usage
+{
+	die "== $CmdStr == prints age in human format ==
+
+usage: $Cmd [options] timecount
+
+options:
+  -v|--verbose	be verbose (just an example)
+  -q|--quiet	be quiet
+
+  'timecount' must an integer number, optionally followed by unit:
+   
+     s	seconds (default)
+     m	minutes
+     h	hours
+     d	days
+
+  or a date in any date format accepted by standard 'date' command; prints the
+  elapsed time from given date and current time
+\n";
+}

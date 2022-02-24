@@ -1,4 +1,4 @@
-# ku-utils.pl
+# ku-utils-realdates.pl
 #
 # VERSION: 1.2 (2022-01-21)
 #
@@ -180,43 +180,54 @@ sub pdebug
 }
 
 
-# ----------------------------
-# DATE FUNCTIONS (simpledates)
-# ----------------------------
+# --------------------------
+# DATE FUNCTIONS (realdates)
+# --------------------------
 #
-# inaccurate, but don't uses additional modules
-#
+use Date::Calc qw( N_Delta_YMDHMS Time_to_Date );
+
+
 sub ptime
 {
 	my ($tm) = @_;
-	my ($yy,$mo,$dd);
-	my ($hh,$mm,$ss);
-	my ($out,$left);
+	my ($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss);
 
 	CASE: {
 		if ($tm =~ /^\d+$/) {	# digits only = seconds
+			($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss) = Time_to_Date( $tm );
 			last CASE;
 		}
+		if ($tm =~ /^\d\d\d\d-\d\d-\d\d$/) {
+			($arg_yy,$arg_mo,$arg_dd) = split( '-', $tm );
+			($arg_hh,$arg_mm,$arg_ss) = split( ':', "00:00:00" );
+			last CASE;
+		}
+		if ($tm =~ /^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d/) {
+			my ($tmp1,$tmp2) = split( ' ', $tm );
+			($arg_yy,$arg_mo,$arg_dd) = split( '-', $tmp1 );
+			($arg_hh,$arg_mm,$arg_ss) = split( ':', $tmp2 );
+		}
+		# last resort, try to convert the string using the date command
+		# (pretty sure that a function in Date::Calc package exists, with the same
+		# purpouse, but at the moment I'm too lazy to investigate)
+		#
 		if (!system( "date --date '$tm' >/dev/null 2>/dev/null" )) {
-			$tm = `date '+%s' --date '$tm'`; chomp($tm);
-			$tm = time() - $tm;
+			$tm = `date '+%Y %m %d %H %M %S' --date '$tm'`; chomp($tm);
+			($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss) = split( ' ', $tm );
 			last CASE;
 		}
-		printf( STDERR "ptime(%s) error: argument must be in seconds, or a valid date\n" );
+		printf( STDERR "ptime(%s) error: argument must be in seconds, or date YYYY-MM-DD [HH:MM:SS]\n" );
 		return;
 	}
-	pdebug( '', "args: tm=%s", $tm );
+	pdebug( '', "args: yy=%s mo=%s dd=%s hh=%s mm=%s ss=%s",
+		$arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss );
 
-	$yy	= int( $tm / 31557600 );	# secs x year
-	$left	= $tm - $yy * 31557600;
-	$mo	= int( $left / 2628000 );	# secs x month (media)
-	$left	= $left - $mo * 2628000;
-	$dd	= int( $left / 86400 );		# secs x day
-	$left	= $left - $dd * 86400;
-	$hh	= int( $left / 3600 );		# secs x hour
-	$left	= $left - $hh * 3600;
-	$mm	= int( $left / 60);		# secs x minute
-	$ss	= $left - $mm * 60;
+	my ($now_yy,$now_mo,$now_dd, $now_hh,$now_mm,$now_ss) = Time_to_Date( time() );
+
+        my ($yy,$mo,$dd, $hh,$mm,$ss) = N_Delta_YMDHMS( $arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss,
+							$now_yy,$now_mo,$now_dd, $now_hh,$now_mm,$now_ss );
+
+
 	if ($yy) {
 		$out = sprintf( "%dy %dm %dd %d:%02d:%02d", $yy, $mo, $dd, $hh, $mm, $ss );
 	} elsif ($mo) {

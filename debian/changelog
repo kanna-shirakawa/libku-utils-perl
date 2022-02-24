@@ -1,3 +1,34 @@
+libku-utils-perl (1.0-ku22-02a) unstable; urgency=low
+
+
+  * ku-utils.pl (both normal and realdates)
+    - fix: ptime() didn't prints months
+    - mod: ptime() now accepts date strings, too
+
+  * bin/print_time
+    - del: properly renamed to 'age'
+
+  * bin/age
+    - mod: accept date strings, too
+
+  * bin/age_real
+    - new: cloned from 'age', uses realdates version of utils
+
+
+ -- Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>  Thu, 24 Feb 2022 03:16:37 +0100
+
+libku-utils-perl (1.0-ku22-01a) unstable; urgency=low
+
+  * ku-utils.pl
+    - add: environment $VERBOSE, $DEBUG and $DEBUGLEVEL will overrides defaults
+
+  * bin/print_time
+    - new: prints timecount in human readable format; example perl script for
+    	   ptime() and set_debug_and_verbose() functions, but is a nice util the
+	   have around
+
+ -- Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>  Sat, 29 Jan 2022 12:15:32 +0100
+
 libku-utils-perl (1.0-ku21-12a) unstable; urgency=low
 
   * ku-utils.pl
@@ -6,7 +37,6 @@ libku-utils-perl (1.0-ku21-12a) unstable; urgency=low
   * (packaging)
     - upd: ku tools updated (1.4)
     - fix: ku/Makefile promoted to main dir
-
 
  -- KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>  Mon, 06 Dec 2021 11:33:52 +0100
 

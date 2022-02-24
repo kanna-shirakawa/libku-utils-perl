@@ -1,3 +1,29 @@
+2022-02-24 03:16:37 1.0 ku22.02a Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
+
+
+  * ku-utils.pl (both normal and realdates)
+    - fix: ptime() didn't prints months
+    - mod: ptime() now accepts date strings, too
+
+  * bin/print_time
+    - del: properly renamed to 'age'
+
+  * bin/age
+    - mod: accept date strings, too
+
+  * bin/age_real
+    - new: cloned from 'age', uses realdates version of utils
+
+2022-01-29 12:15:32 1.0 ku22.01a Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
+
+  * ku-utils.pl
+    - add: environment $VERBOSE, $DEBUG and $DEBUGLEVEL will overrides defaults
+
+  * bin/print_time
+    - new: prints timecount in human readable format; example perl script for
+    	   ptime() and set_debug_and_verbose() functions, but is a nice util the
+	   have around
+
 2021-12-06 11:33:52 1.0 ku21.12a KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
 
   * ku-utils.pl

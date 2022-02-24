@@ -1,8 +1,8 @@
 :TOOLKIT	libku-utils-perl
 :VERSION	1.0
-:RELEASE	ku21.12a
-:SIGNATURE	${VERSION}-${RELEASE} (2021-12-06)
-:maintainer	KUBiC Labs (CH) - Lorenzo Canovi <kanna@kubiclabs.com>
+:RELEASE	ku22.02a
+:SIGNATURE	${VERSION}-${RELEASE} (2022-02-24)
+:maintainer	Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
 :homepage	http://www.kubiclabs.com
 :copy1		maintainer: $maintainer
 :copy2		for copyright see /usr/share/doc/$TOOLKIT/copyright
@@ -19,6 +19,9 @@ docs/*		$docdir/
 :default_mode	775
 :dir		$docdir/cgi-bin
 cgi-bin/freedb	$docdir/cgi-bin/
+
+:dir		$bindir
+bin/*		$bindir/
 
 
 
