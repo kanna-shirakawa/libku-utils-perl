@@ -1,7 +1,7 @@
 :TOOLKIT	libku-utils-perl
 :VERSION	1.0
-:RELEASE	ku22.02a
-:SIGNATURE	${VERSION}-${RELEASE} (2022-02-24)
+:RELEASE	ku23.08a
+:SIGNATURE	${VERSION}-${RELEASE} (2023-08-27)
 :maintainer	Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
 :homepage	http://www.kubiclabs.com
 :copy1		maintainer: $maintainer
@@ -28,4 +28,4 @@ bin/*		$bindir/
 :dir		$prefix/share/perl5
 
 :default_mode	664
-src/*.pl	$prefix/share/perl5/
+src/[a-z]*.pl	$prefix/share/perl5/

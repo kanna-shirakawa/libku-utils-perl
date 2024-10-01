@@ -1,6 +1,6 @@
 # ku-utils-realdates.pl
 #
-# VERSION: 1.2 (2022-01-21)
+# VERSION: 1.4 (2022-04-15)
 #
 # __copy1__
 # __copy2__
@@ -8,16 +8,19 @@
 # some usefull code snippets that will be "imported" in the main namespace
 # if this file is in the include search path, simply include using
 #
-#	do "ku-utils.pl";
+#	do "ku-utils.pl" or die;
 #
 # if you place this file in the same dir of the calling program, use
 #
 #	$_ = $0; s#/[^/]+$##;
-#	do "$_/ku-utils.pl";
-#
+#	do "$_/ku-utils.pl" or die;
 #
 # 
 # AVAILABLE FUNCTIONS
+#
+#   tprintf( format, args )
+#	return the output of sprintf(), preceeded by timestamp in the format
+#	YYYYmmdd HHMMSS; usefull to print logfiles lines
 #
 #   vprint( message, [args] )
 #   	prints message on stdout if $Verbose is not zero; same exact syntax
@@ -90,14 +93,25 @@
 # not a requirement; the cons are that you don't need any additional perl
 # module to use them
 #
-# if you need real dates use "ku-utils-realdates.pl" instad of "ku-utils.pl";
-# XXX XXXXXXXXXXXXXXXXXX
-#
+# if you need real dates use "ku-utils-realdates.pl" instead of "ku-utils.pl";
+
+# pollution!
 package main;
 
 our $Verbose	= 1;
 our $Debug	= 0;
 our %Debug;
+
+sub tprintf
+{
+	my $fmt = shift;
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my $out = sprintf( "%4d%02d%02d %02d%02d%02d ",
+			$year+1900, $mon+1, $mday, $hour, $min, $sec );
+
+	$out .= sprintf( $fmt, @_ );
+	return $out;
+}
 
 sub vprint
 {
@@ -186,32 +200,46 @@ sub pdebug
 #
 use Date::Calc qw( N_Delta_YMDHMS Time_to_Date );
 
-
 sub ptime
 {
 	my ($tm) = @_;
 	my ($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss);
+	my ($tmp);
 
 	CASE: {
 		if ($tm =~ /^\d+$/) {	# digits only = seconds
+			$tm = time() - $tm;
+			pdebug( '', "ptime(): using Time_to_Date(%s)", $tm );
 			($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss) = Time_to_Date( $tm );
 			last CASE;
 		}
 		if ($tm =~ /^\d\d\d\d-\d\d-\d\d$/) {
+			pdebug( '', "ptime(): using short date YYYY-mm-dd" );
 			($arg_yy,$arg_mo,$arg_dd) = split( '-', $tm );
 			($arg_hh,$arg_mm,$arg_ss) = split( ':', "00:00:00" );
 			last CASE;
 		}
-		if ($tm =~ /^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d/) {
+		if ($tm =~ /^\d\d\d\d-\d\d-\d\d \d\d:\d\d$/) {
+			pdebug( '', "ptime(): using long date YYYY-mm-dd HH:MM" );
+			my ($tmp1,$tmp2) = split( ' ', $tm );
+			($arg_yy,$arg_mo,$arg_dd) = split( '-', $tmp1 );
+			($arg_hh,$arg_mm) = split( ':', $tmp2 );
+			$arg_ss = 0;
+			last CASE;
+		}
+		if ($tm =~ /^\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d$/) {
+			pdebug( '', "ptime(): using long date YYYY-mm-dd HH:MM:SS" );
 			my ($tmp1,$tmp2) = split( ' ', $tm );
 			($arg_yy,$arg_mo,$arg_dd) = split( '-', $tmp1 );
 			($arg_hh,$arg_mm,$arg_ss) = split( ':', $tmp2 );
+			last CASE;
 		}
 		# last resort, try to convert the string using the date command
 		# (pretty sure that a function in Date::Calc package exists, with the same
 		# purpouse, but at the moment I'm too lazy to investigate)
 		#
 		if (!system( "date --date '$tm' >/dev/null 2>/dev/null" )) {
+			pdebug( '', "ptime(): last resort, using 'date' command" );
 			$tm = `date '+%Y %m %d %H %M %S' --date '$tm'`; chomp($tm);
 			($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss) = split( ' ', $tm );
 			last CASE;
@@ -223,9 +251,41 @@ sub ptime
 		$arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss );
 
 	my ($now_yy,$now_mo,$now_dd, $now_hh,$now_mm,$now_ss) = Time_to_Date( time() );
+	pdebug( '', "now:  yy=%s mo=%s dd=%s hh=%s mm=%s ss=%s",
+		$now_yy,$now_mo,$now_dd, $now_hh,$now_mm,$now_ss );
 
         my ($yy,$mo,$dd, $hh,$mm,$ss) = N_Delta_YMDHMS( $arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss,
 							$now_yy,$now_mo,$now_dd, $now_hh,$now_mm,$now_ss );
+	pdebug( '', "diff: yy=%s mo=%s dd=%s hh=%s mm=%s ss=%s",
+		$yy,$mo,$dd, $hh,$mm,$ss );
+
+	# for same reason N_Delta_YMDHMS() returns crazy values in some circustances; ie tested
+	# on 2022-03-06 17:11:05, with those input values we got:
+	#
+	#	input = 41608h	-> 4y 8m 27d 16:00:00
+	#	input = 41609h	-> 3y 19m 58d 17:00:00	WTF?
+	#
+	# as workaround we recalculate timediff subtracting 1 hour to the input value (here,
+	# adding 1 hour to the difference), and then normalizing the result
+	#
+	# note that this workaround can returns wrong H value (but I can't test it, since the input
+	# conditions that trigger the incorrect beheaviour and the workaround  are almost random)
+	#
+	$tmp = 0;
+	while ($mo > 12 || $dd > 31) {
+		$tm += 3600;
+		$tmp ++;
+		pdebug( '', "wrong values returned, trying workaround, adding %d hours to input", $tmp );
+
+		($arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss) = Time_to_Date( $tm );
+		pdebug( '', "wk args: yy=%s mo=%s dd=%s hh=%s mm=%s ss=%s",
+			$arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss );
+
+        	($yy,$mo,$dd, $hh,$mm,$ss) = N_Delta_YMDHMS( $arg_yy,$arg_mo,$arg_dd, $arg_hh,$arg_mm,$arg_ss,
+							     $now_yy,$now_mo,$now_dd, $now_hh,$now_mm,$now_ss );
+		$hh -= $tmp;
+		pdebug( '', "wk diff: yy=%s mo=%s dd=%s hh=%s mm=%s ss=%s", $yy,$mo,$dd, $hh,$mm,$ss );
+	}
 
 
 	if ($yy) {

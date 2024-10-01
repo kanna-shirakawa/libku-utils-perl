@@ -14,7 +14,7 @@ a bunch of perl code snippets, for lazy programmers, at the moment:
 	database, usefull to permament save and retrieve small
 	pieces of data via web interface
 
-- print\_time (installed in /usr/bin)
+- age (installed in /usr/bin)
 	a command that prints human readably format the elapsed time
 	(in seconds or other units); a perl script used as example
 	of ku-utils.pl functions

@@ -1,14 +1,14 @@
 #!/usr/bin/perl -w
 
 my $Cmd		= "age";
-my $CmdVer	= "1.1";
-my $CmdStr	= "$Cmd v$CmdVer (2022-02-24)";
+my $CmdVer	= "1.3";
+my $CmdStr	= "$Cmd v$CmdVer (2022-10-09)";
 
 if (-f "../src/ku-utils.pl") {
 	print( STDERR "DD# test environment, using lib from ../src dir\n" );
-	do "../src/ku-utils.pl";	# test environment
+	do "../src/ku-utils.pl" or die;	# test environment
 } else {
-	do "ku-utils.pl";		# production environment
+	do "ku-utils.pl" or die;	# production environment
 }
 
 our $Verbose	= 0;	# the default is 1
@@ -70,5 +70,10 @@ options:
 
   or a date in any date format accepted by standard 'date' command; prints the
   elapsed time from given date and current time
+
+Note: this is the simplest, inaccurate, version of the command, that don't needs
+any additional perl module to work; if you want the precise version, use
+'age_real' instead, but you need to have Date::Calc module installed (on debian
+based systems, install the libdate-calc-perl package)
 \n";
 }

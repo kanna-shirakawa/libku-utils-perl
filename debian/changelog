@@ -1,5 +1,38 @@
-libku-utils-perl (1.0-ku22-02a) unstable; urgency=low
+libku-utils-perl (1.0-ku23-08a) unstable; urgency=low
 
+  * debian/compat
+    - upd: (devuan daedalus) from 5 to 10
+
+  * debian/rules (debian.in/rules)
+    - upd: added dh_prep and dh_clean in build target
+
+
+ -- Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>  Thu, 07 Mar 2024 07:45:17 +0100
+
+libku-utils-perl (1.0-ku22-04a) unstable; urgency=low
+
+  * ku-utils.pl (both normal and realdates)
+    - add: tprintf() function, returns sprintf() output preceede by timestamp
+
+ -- Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>  Tue, 14 Mar 2023 11:51:41 +0100
+
+libku-utils-perl (1.0-ku22-03a) unstable; urgency=low
+
+  * ku-utils-realdates.pl
+    - fix: ptime() shows wrong time when called with "h, m, s" units, or complex
+    	   date string (after conversion to seconds, current time was not subtracted)
+    - fix: added workaround for strange results from N_Delta_YMDHSM() function
+    	   (like months > 12, or days > 31)
+    - fix: missing "last CASE" in switch test
+    - fix: missing "cd src; $(MAKE)" in debian.in/rules
+
+  * age, age_real
+    - fix: added "or die" after the inclusion of libfile via "do", to catch any
+    	   error, like missing packages
+
+ -- Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>  Fri, 15 Apr 2022 12:54:31 +0200
+
+libku-utils-perl (1.0-ku22-02a) unstable; urgency=low
 
   * ku-utils.pl (both normal and realdates)
     - fix: ptime() didn't prints months
@@ -13,7 +46,6 @@ libku-utils-perl (1.0-ku22-02a) unstable; urgency=low
 
   * bin/age_real
     - new: cloned from 'age', uses realdates version of utils
-
 
  -- Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>  Thu, 24 Feb 2022 03:16:37 +0100
 

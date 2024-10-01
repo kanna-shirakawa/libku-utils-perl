@@ -1,6 +1,6 @@
 # ku-utils.pl
 #
-# VERSION: 1.2 (2022-01-21)
+# VERSION: 1.4 (2022-04-15)
 #
 # __copy1__
 # __copy2__
@@ -8,16 +8,19 @@
 # some usefull code snippets that will be "imported" in the main namespace
 # if this file is in the include search path, simply include using
 #
-#	do "ku-utils.pl";
+#	do "ku-utils.pl" or die;
 #
 # if you place this file in the same dir of the calling program, use
 #
 #	$_ = $0; s#/[^/]+$##;
-#	do "$_/ku-utils.pl";
-#
+#	do "$_/ku-utils.pl" or die;
 #
 # 
 # AVAILABLE FUNCTIONS
+#
+#   tprintf( format, args )
+#	return the output of sprintf(), preceeded by timestamp in the format
+#	YYYYmmdd HHMMSS; usefull to print logfiles lines
 #
 #   vprint( message, [args] )
 #   	prints message on stdout if $Verbose is not zero; same exact syntax
@@ -90,14 +93,25 @@
 # not a requirement; the cons are that you don't need any additional perl
 # module to use them
 #
-# if you need real dates use "ku-utils-realdates.pl" instad of "ku-utils.pl";
-# XXX XXXXXXXXXXXXXXXXXX
-#
+# if you need real dates use "ku-utils-realdates.pl" instead of "ku-utils.pl";
+
+# pollution!
 package main;
 
 our $Verbose	= 1;
 our $Debug	= 0;
 our %Debug;
+
+sub tprintf
+{
+	my $fmt = shift;
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my $out = sprintf( "%4d%02d%02d %02d%02d%02d ",
+			$year+1900, $mon+1, $mday, $hour, $min, $sec );
+
+	$out .= sprintf( $fmt, @_ );
+	return $out;
+}
 
 sub vprint
 {

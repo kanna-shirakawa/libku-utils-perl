@@ -1,3 +1,29 @@
+  * debian/compat
+    - upd: (devuan daedalus) from 5 to 10
+
+  * debian/rules (debian.in/rules)
+    - upd: added dh_prep and dh_clean in build target
+
+2023-03-14 11:51:41 1.0 ku22.04a Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
+
+  * ku-utils.pl (both normal and realdates)
+    - add: tprintf() function, returns sprintf() output preceede by timestamp
+
+2022-04-15 12:54:31 1.0 ku22.03a Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
+
+  * ku-utils-realdates.pl
+    - fix: ptime() shows wrong time when called with "h, m, s" units, or complex
+    	   date string (after conversion to seconds, current time was not subtracted)
+    - fix: added workaround for strange results from N_Delta_YMDHSM() function
+    	   (like months > 12, or days > 31)
+    - fix: missing "last CASE" in switch test
+    - fix: missing "cd src; $(MAKE)" in debian.in/rules
+
+  * age, age_real
+    - fix: added "or die" after the inclusion of libfile via "do", to catch any
+    	   error, like missing packages
+
+2022-02-24 03:16:37 1.0 ku22.02a Lorenzo Canovi, KUBiC Labs (CH) <kanna@kubiclabs.com>
 
   * ku-utils.pl (both normal and realdates)
     - fix: ptime() didn't prints months
